@@ -1,16 +1,14 @@
 import * as vscode from 'vscode';
-import { Finder } from './revealer';
+import { Quicklist } from './revealer';
 
 export function activate(context: vscode.ExtensionContext) {
 	
-
 	const disposable = vscode.commands.registerCommand('finder.reveal', () => {
-		Finder.open()
+		Quicklist.open();
 	});
 
 
 	context.subscriptions.push(disposable);
-	//context.subscriptions.push(picker)
 
 }
 
