@@ -62,7 +62,8 @@ export class Finder {
   static open() {
 
     const picker = vscode.window.createQuickPick();
-    picker.onDidChangeValue((input: string) => {
+
+    const update = (input: string) => {
       const info = Finder.findFiles(input);
 
       if (info.base && info.base !== info.matched[0]) {
@@ -72,7 +73,9 @@ export class Finder {
       picker.items = info?.matched?.map(file => ({
         label: file
       }));
-    });
+    }
+
+    picker.onDidChangeValue(update);
 
     picker.onDidAccept(() => {
       const selected = picker.selectedItems[0];
@@ -91,7 +94,7 @@ export class Finder {
     });
 
 		picker.show();
-		picker.value = Finder.pwd() || "";
+    update(Finder.pwd() || "");
 
   }
 

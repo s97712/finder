@@ -2,6 +2,7 @@
   "name": "finder",
 	"displayName": "finder",
 	"description": "finder",
+	"publisher": "impless",
 	"repository": {
 		"url": "https://github.com/s97712/finder/tree/main"
 	},
