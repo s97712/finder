@@ -19,6 +19,12 @@
 				"command": "finder.reveal",
 				"title": "Reveal"
 			}
+		],
+		"keybindings": [
+			{
+				"command": "finder.reveal",
+				"key": "ctrl+p"
+			}
 		]
 	},
 	"scripts": {
