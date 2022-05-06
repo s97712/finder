@@ -71,16 +71,17 @@ export class Finder {
       }
     });
 
-    picker.onDidAccept(() => {
+    picker.onDidAccept(async () => {
       const selected = picker.selectedItems[0];
       if (selected.label === picker.value) {
         const uri = Finder.toUri(picker.value);
         if (uri) {
           Quicklist.add_his(uri.path);
-          vscode.commands.executeCommand("revealInExplorer", uri);
-          vscode.workspace.openTextDocument(uri).then(doc => {
-            vscode.window.showTextDocument(doc);
-          }, () => { });
+          try {
+            await vscode.commands.executeCommand("workbench.files.action.showActiveFileInExplorer", uri);
+            const doc = await vscode.workspace.openTextDocument(uri);
+            vscode.window.showTextDocument(doc, { preview: false })
+          } catch { }
         }
         picker.dispose();
       } else {
