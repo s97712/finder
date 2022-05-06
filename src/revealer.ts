@@ -78,7 +78,7 @@ export class Finder {
         if (uri) {
           Quicklist.add_his(uri.path);
           try {
-            await vscode.commands.executeCommand("workbench.files.action.showActiveFileInExplorer", uri);
+            await vscode.commands.executeCommand("revealInExplorer", uri);
             const doc = await vscode.workspace.openTextDocument(uri);
             vscode.window.showTextDocument(doc, { preview: false })
           } catch { }
