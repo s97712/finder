@@ -76,7 +76,6 @@ export class Finder {
       if (selected.label === picker.value) {
         const uri = Finder.toUri(picker.value);
         if (uri) {
-          Quicklist.add_his(uri.path);
           try {
             await vscode.commands.executeCommand("revealInExplorer", uri);
             const doc = await vscode.workspace.openTextDocument(uri);
@@ -89,15 +88,13 @@ export class Finder {
       }
     });
 
-		picker.show();
+    picker.show();
     picker.value = match;
-
   }
 
 }
 
 export class Quicklist {
-  static his: Array<string> = [];
 
   static pwd() {
     const uri = vscode.window.activeTextEditor?.document.uri;
@@ -116,33 +113,68 @@ export class Quicklist {
     }
   }
 
-  static add_his(match: string) {
-    const f = this.to_match(match);
-    if (f) {
-      const idx = this.his.findIndex(v => v === f);
-      if (idx !== -1) this.his.splice(idx, 1);
-      this.his.push(f)
-    }
-    if (this.his.length >= 20) {
-      this.his.slice(-15)
-    }
-  }
-
-  static open() {
-    const his = this.his.slice(-8).reverse();
-    const pwd = this.pwd();
-    const ws = vscode.workspace.workspaceFolders?.map(item => item.name + ":")
-
-    const items: string[] = [];
-
-    pwd && items.push(pwd);
-    items.push(...his)
-    ws && items.push(...ws);
-
-
-    vscode.window.showQuickPick(items).then(match => {
-      match && Finder.open(match)
+  static async open() {
+    vscode.window.showQuickPick(this.search()).then(matched => {
+      matched && Finder.open(matched)
     })
   }
-  
+
+  static traverse_files(root: string, excludes: string[]) {
+    const files: string[] = [];
+    const stack: string[] = [];
+
+    stack.push(...readdirSync(root));
+    let cdir = "";
+    while (stack.length >= 1) {
+      let name = stack.pop();
+
+      while (name?.startsWith("dir:")) {
+        cdir = name.slice("dir:".length);
+        name = stack.pop();
+      }
+
+      const uri = `${cdir}${name}`;
+      if (excludes.some(ex => uri.includes(ex))) continue;
+
+      const filename = `${root}/${uri}`;
+      if (lstatSync(filename).isDirectory()) {
+        stack.push(`dir:${cdir}`);
+        cdir = uri + "/";
+
+        files.push(cdir);
+        stack.push(...readdirSync(filename));
+      } else {
+        files.push(uri)
+      }
+    }
+    return files;
+  }
+
+  static search() {
+    const dirs = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path) || [];
+    return vscode.workspace.workspaceFolders?.flatMap(folder => {
+      const dirname = folder.uri.path;
+
+      const excludes = dirs.filter(v => v.startsWith(dirname))
+        .map(f => f.slice(dirname.length))
+        .filter(f => f)
+
+      return this.traverse_files(dirname, [
+        ...excludes,
+        ".yarn",
+        "node_modules",
+        "dist",
+        "output"
+      ]).map(it => `${folder.name}: ${it}`)
+    }) || []
+  }
+
+
 }
+
+
+
+
+
+
+
